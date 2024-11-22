@@ -1,0 +1,77 @@
+{{- if .Values.fileShareVolume.enabled -}}
+
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  annotations:
+    pv.kubernetes.io/provisioned-by: file.csi.azure.com
+  name: weaviate-data
+spec:
+  accessModes:
+  - ReadWriteMany
+  capacity:
+    storage: {{ .Values.fileShareVolume.capacity.storage }}
+  csi:
+    driver: file.csi.azure.com
+    nodeStageSecretRef:
+      name: weaviate-azure-storage-secret
+      namespace: {{ .Release.Namespace }}
+    volumeAttributes:
+      resourceGroup: {{ .Values.fileShareVolume.resourceGroup }}
+      shareName: {{ .Values.fileShareVolume.name }}
+    volumeHandle: {{ .Values.fileShareVolume.resourceGroup }}#{{ .Values.fileShareVolume.storageAccount }}#{{ .Values.fileShareVolume.name }}
+  mountOptions:
+  - dir_mode=0777
+  - file_mode=0777
+  - uid=0
+  - gid=0
+  - mfsymlinks
+  - cache=strict
+  - nosharesock
+  - nobrl
+  persistentVolumeReclaimPolicy: Delete
+  storageClassName: azurefile-csi
+---
+  apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: weaviate-data-weaviate-0
+spec:
+  accessModes:
+  - ReadWriteMany
+  resources:
+    requests:
+      storage: {{ .Values.fileShareVolume.capacity.requestsStorage }}
+  storageClassName: azurefile-csi
+  volumeName: weaviate-data
+
+---
+apiVersion: secrets-store.csi.x-k8s.io/v1
+kind: SecretProviderClass
+metadata:
+  name: weaviate-azure-storage-spc
+  labels:
+    app: weaviate  
+spec:
+  provider: azure
+  secretObjects:
+    - secretName: weaviate-azure-storage-secret
+      type: Opaque
+      data:
+        - objectName: storageaccount-name-dev
+          key: accountname
+        - objectName: storageaccount-key-dev
+          key: accountkey 
+  parameters:
+    usePodIdentity: "true"
+    keyvaultName: {{ .Values.fileShareVolume.keyVaultName }}
+    objects: |
+      array:
+        - |
+          objectName: "storageaccount-name-dev"
+          objectType: secret
+        - |
+          objectName: "storageaccount-key-dev"
+          objectType: secret
+    tenantId: "69f82b29-1380-4974-ab4f-521b1a44c970"
+{{- end -}}

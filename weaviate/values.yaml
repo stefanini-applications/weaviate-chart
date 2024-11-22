@@ -1927,3 +1927,18 @@ affinity:
 ##
 priorityClassName: ""
 globalPriorityClassName: ""
+
+fileShareVolume:
+  enabled: true
+  # The name of the fileshare   
+  name: ""  
+  storageAccount: ""
+  # The name of the resource group
+  resourceGroup: ""
+  capacity:
+    # The size of the fileshare on Persistent Volume. Default is 10Gi
+    storage: "10Gi"
+    #  The size of the request from pvc. Default is 5Gi
+    requestsStorage: "5Gi"
+  podIdentityLabel: ""  
+  keyVaultName: ""
