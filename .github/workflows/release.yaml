@@ -6,13 +6,14 @@ on:
       - master
     paths:
       - 'weaviate/Chart.yaml'
+  workflow_dispatch:
 
 permissions:
   contents: write
   
 jobs:
   update-readme-metadata:
-    runs-on: ['azure-identity']
+    runs-on: ["azure-identity"]
 
     steps:
       - name: Checkout
